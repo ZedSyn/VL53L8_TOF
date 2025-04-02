@@ -19,6 +19,8 @@
 #define SPI_CHANNEL 0 // SPI channel (0 or 1)
 #define SPI_SPEED 500000 // SPI speed in Hz
 
+// wiringPiSPIDataRW - activates ncs pin
+
 uint8_t VL53L8CX_RdByte(
 		VL53L8CX_Platform *p_platform,
 		uint16_t RegisterAdress,
