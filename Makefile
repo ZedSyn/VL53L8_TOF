@@ -9,9 +9,10 @@ VL53L8CX_DIR = VL53L8CX_ULD_API
 BUILD_DIR = build
 
 # Source and object files
+MAIN_SRC = main.c
 PLATFORM_SRCS = $(wildcard $(PLATFORM_DIR)/*.c)
 VL53L8CX_SRCS = $(wildcard $(VL53L8CX_DIR)/src/*.c)
-SRCS = $(PLATFORM_SRCS) $(VL53L8CX_SRCS)
+SRCS = $(MAIN_SRC) $(PLATFORM_SRCS) $(VL53L8CX_SRCS)
 OBJS = $(patsubst %.c, $(BUILD_DIR)/%.o, $(SRCS))
 TARGET = $(BUILD_DIR)/my_project
 
