@@ -1,23 +1,26 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Iinclude -Wall -Wextra -g
+CFLAGS = -IPlatform -IVL53L8CX_ULD_API/inc -Wall -Wextra -g
 LDFLAGS = 
 
 # Directories
-SRC_DIR = src
+PLATFORM_DIR = Platform
+VL53L8CX_DIR = VL53L8CX_ULD_API
 BUILD_DIR = build
-INCLUDE_DIR = include
 
-# Source files and object files
-SRCS = $(wildcard $(SRC_DIR)/*.c)
-OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
+# Source and object files
+PLATFORM_SRCS = $(wildcard $(PLATFORM_DIR)/*.c)
+VL53L8CX_SRCS = $(wildcard $(VL53L8CX_DIR)/src/*.c)
+SRCS = $(PLATFORM_SRCS) $(VL53L8CX_SRCS)
+OBJS = $(patsubst %.c, $(BUILD_DIR)/%.o, $(SRCS))
 TARGET = $(BUILD_DIR)/my_project
 
 # Default target: Build the executable
 all: $(TARGET)
 
 # Compile each .c file into an .o file
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
+	mkdir -p $(dir $@)  # Ensure subdirectories exist
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Link object files into the final executable
