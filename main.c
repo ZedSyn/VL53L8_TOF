@@ -26,7 +26,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <wiringPi.h>
+#include <wiringPiSPI.h>
 #include "vl53l8cx_api.h"
+
+#define SPI_NUMBER 0
+#define SPI_CHANNEL 0 // SPI channel (0 or 1)
+#define SPI_SPEED 500000 // SPI speed in Hz
+#define SPI_MODE 3
 
 int main(void)
 {
@@ -56,6 +63,20 @@ int main(void)
 	* from the default one (filled with 0x20 for this example).
 	*/
 	//status = vl53l8cx_set_i2c_address(&Dev, 0x20);
+
+	if(wiringPiSetup() == -1)
+	{
+		printf("WiringPi setup failed\n");
+		return 1;
+	}
+
+	if(wiringPiSPIxSetupMode(SPI_NUMBER, SPI_CHANNEL, SPI_SPEED, SPI_MODE) == -1)
+	{
+		printf("SPI setup failed!\n");
+		return 1;
+	}
+
+	printf("SPI setup successful!\n");
 
 
 	/*********************************/
@@ -123,5 +144,6 @@ int main(void)
 
 	status = vl53l8cx_stop_ranging(&Dev);
 	printf("End of ULD demo\n");
+	wiringPiSPIClose(SPI_CHANNEL);
 	return status;
 }

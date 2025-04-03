@@ -15,6 +15,7 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 #include <unistd.h> // for usleep
+#include <stdio.h>
 
 #define SPI_CHANNEL 0 // SPI channel (0 or 1)
 #define SPI_SPEED 500000 // SPI speed in Hz
@@ -27,11 +28,10 @@ uint8_t VL53L8CX_RdByte(
 		uint8_t *p_value)
 {
 	uint8_t status = 0;
-	uint8_t tx_buffer[3] = { (RegisterAdress >> 8) & 0xFF, RegisterAdress & 0xFF, 0x00 };
-	uint8_t rx_buffer[3] = { 0 };
+	uint8_t tx_buffer[3] = { (RegisterAdress >> 8) & 0x7F, RegisterAdress & 0xFF, 0x00 };
 
 	if (wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, 3) == -1) {
-		status = 255; // Error
+		status = 1; // Error
 	} else {
 		*p_value = tx_buffer[2];
 	}
@@ -45,10 +45,10 @@ uint8_t VL53L8CX_WrByte(
 		uint8_t value)
 {
 	uint8_t status = 0;
-	uint8_t tx_buffer[3] = { (RegisterAdress >> 8) & 0xFF, RegisterAdress & 0xFF, value };
+	uint8_t tx_buffer[3] = { (RegisterAdress >> 8) | 0x80, RegisterAdress & 0xFF, value };
 
 	if (wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, 3) == -1) {
-		status = 255; // Error
+		status = 1; // Error
 	}
 
 	return status;
@@ -62,12 +62,12 @@ uint8_t VL53L8CX_WrMulti(
 {
 	uint8_t status = 0;
 	uint8_t tx_buffer[size + 2];
-	tx_buffer[0] = (RegisterAdress >> 8) & 0xFF;
+	tx_buffer[0] = (RegisterAdress >> 8) & 0x80;
 	tx_buffer[1] = RegisterAdress & 0xFF;
 	memcpy(&tx_buffer[2], p_values, size);
 
 	if (wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, size + 2) == -1) {
-		status = 255; // Error
+		status = 1; // Error
 	}
 
 	return status;
@@ -81,13 +81,12 @@ uint8_t VL53L8CX_RdMulti(
 {
 	uint8_t status = 0;
 	uint8_t tx_buffer[size + 2];
-	uint8_t rx_buffer[size + 2];
-	tx_buffer[0] = (RegisterAdress >> 8) & 0xFF;
+	tx_buffer[0] = (RegisterAdress >> 8) & 0x7F;
 	tx_buffer[1] = RegisterAdress & 0xFF;
 	memset(&tx_buffer[2], 0, size);
 
 	if (wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, size + 2) == -1) {
-		status = 255; // Error
+		status = 1; // Error
 	} else {
 		memcpy(p_values, &tx_buffer[2], size);
 	}

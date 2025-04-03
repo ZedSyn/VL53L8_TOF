@@ -1,7 +1,7 @@
 # Compiler and flags
 CC = gcc
 CFLAGS = -IPlatform -IVL53L8CX_ULD_API/inc -Wall -Wextra -g
-LDFLAGS = 
+LDFLAGS = -lwiringPi
 
 # Directories
 PLATFORM_DIR = Platform
