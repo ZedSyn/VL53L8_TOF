@@ -20,8 +20,6 @@
 #define SPI_CHANNEL 0 // SPI channel (0 or 1)
 #define SPI_SPEED 500000 // SPI speed in Hz
 
-// wiringPiSPIDataRW - activates ncs pin
-
 uint8_t VL53L8CX_RdByte(
 		VL53L8CX_Platform *p_platform,
 		uint16_t RegisterAdress,
@@ -62,7 +60,7 @@ uint8_t VL53L8CX_WrMulti(
 {
 	uint8_t status = 0;
 	uint8_t tx_buffer[size + 2];
-	tx_buffer[0] = (RegisterAdress >> 8) & 0x80;
+	tx_buffer[0] = (RegisterAdress >> 8) | 0x80;
 	tx_buffer[1] = RegisterAdress & 0xFF;
 	memcpy(&tx_buffer[2], p_values, size);
 

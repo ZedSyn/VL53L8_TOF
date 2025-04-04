@@ -64,13 +64,7 @@ int main(void)
 	*/
 	//status = vl53l8cx_set_i2c_address(&Dev, 0x20);
 
-	if(wiringPiSetup() == -1)
-	{
-		printf("WiringPi setup failed\n");
-		return 1;
-	}
-
-	if(wiringPiSPIxSetupMode(SPI_NUMBER, SPI_CHANNEL, SPI_SPEED, SPI_MODE) == -1)
+	if(wiringPiSPIxSetupMode(SPI_NUMBER, SPI_CHANNEL, SPI_SPEED, SPI_MODE) == -1)  //maybe add the spi mode also
 	{
 		printf("SPI setup failed!\n");
 		return 1;
