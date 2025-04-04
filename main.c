@@ -32,7 +32,7 @@
 
 #define SPI_NUMBER 0
 #define SPI_CHANNEL 0 // SPI channel (0 or 1)
-#define SPI_SPEED 500000 // SPI speed in Hz
+#define SPI_SPEED 500000//0 // SPI speed in Hz
 #define SPI_MODE 3
 
 int main(void)
