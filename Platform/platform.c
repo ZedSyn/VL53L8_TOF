@@ -31,8 +31,8 @@ uint8_t VL53L8CX_RdByte(
 {
 	uint8_t status = 0;
 	uint8_t tx_buffer[3] = { (RegisterAdress >> 8) & 0x7F, RegisterAdress & 0xFF, 0x00 };
-
-	if (wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, 3) == -1) {
+	
+	if (wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, 3) < 0) {
 		printf("SPI errno: %s (errno: %d)\n", strerror(errno), errno);
 		status = 1; // Error
 	} else {
@@ -50,7 +50,7 @@ uint8_t VL53L8CX_WrByte(
 	uint8_t status = 0;
 	uint8_t tx_buffer[3] = { (RegisterAdress >> 8) | 0x80, RegisterAdress & 0xFF, value };
 
-	if (wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, 3) == -1) {
+	if (wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, 3) < 0) {
 		printf("SPI errno: %s (errno: %d)\n", strerror(errno), errno);
 		status = 1; // Error
 	}
@@ -70,17 +70,12 @@ uint8_t VL53L8CX_WrMulti(
 	tx_buffer[1] = RegisterAdress & 0xFF;
 	memcpy(&tx_buffer[2], p_values, size);
 
-	if(size > MAX_SPI_CHUNK) {
-		status = spi_transfer_chunked(SPI_CHANNEL, tx_buffer, size + 2);
-	}else
+	if(wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, size + 2) < 0)
 	{
-		if(wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, size + 2) < 0)
-		{
-			printf("SPI errno: %s (errno: %d)\n", strerror(errno), errno);
-			status = 1;
-		}
+		printf("SPI errno: %s (errno: %d)\n", strerror(errno), errno);
+		status = 1;
 	}
-
+	
 	return status;
 }
 

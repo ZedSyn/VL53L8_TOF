@@ -78,10 +78,11 @@ static uint8_t _vl53l8cx_poll_for_mcu_boot(
 		}
 		(void)VL53L8CX_WaitMs(&(p_dev->platform), 1);
 		timeout++;
-
+		
 		if((go2_status0 & (uint8_t)0x1) != (uint8_t)0){
 			break;
 		}
+		//printf("status0: %u, status1: %u, status: %u\n",go2_status0, go2_status1, status);
 	}while (timeout < (uint16_t)500);
 
    return status;
