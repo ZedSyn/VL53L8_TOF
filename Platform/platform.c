@@ -22,6 +22,7 @@
 
 #define SPI_CHANNEL 0 // SPI channel (0 or 1)
 #define SPI_SPEED 500000 // SPI speed in Hz
+#define MAX_SPI_CHUNK 4096
 
 uint8_t VL53L8CX_RdByte(
 		VL53L8CX_Platform *p_platform,
@@ -69,9 +70,16 @@ uint8_t VL53L8CX_WrMulti(
 	tx_buffer[1] = RegisterAdress & 0xFF;
 	memcpy(&tx_buffer[2], p_values, size);
 
-	if (wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, size + 2) == -1) {
-		printf("SPI errno: %s (errno: %d)\n", strerror(errno), errno);
-		status = 1; // Error
+	if(size > MAX_SPI_CHUNK) {
+		status = spi_transfer_chunked(SPI_CHANNEL, tx_buffer, size + 2);
+	}else
+	{
+		status = wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, size + 2);
+		//For debugging purposes, check if the transfer was successful
+		if(status < 0)
+		{
+			printf("SPI errno: %s (errno: %d)\n", strerror(errno), errno);
+		}
 	}
 
 	return status;
@@ -100,7 +108,7 @@ uint8_t VL53L8CX_RdMulti(
 }
 
 uint8_t VL53L8CX_Reset_Sensor(
-		VL53L8CX_Platform *p_platform)
+		VL53L8CX_Platform *p_platform)   ////Must initilize the GPIO library before using these functions
 {
 	uint8_t status = 0;
 
@@ -138,3 +146,21 @@ uint8_t VL53L8CX_WaitMs(
 	delay(TimeMs); // WiringPi delay in milliseconds
 	return 0;
 }
+
+int spi_transfer_chunked(int channel, unsigned char *data, int total_len) {
+    int offset = 0;
+
+    while (offset < total_len) {
+        int chunk_len = (total_len - offset > MAX_SPI_CHUNK) ? MAX_SPI_CHUNK : (total_len - offset);
+
+        if (wiringPiSPIDataRW(channel, data + offset, chunk_len) < 0) {
+            printf("SPI transfer failed at offset %d: %s (errno: %d)\n", offset, strerror(errno), errno);
+            return -1; // Error
+        }
+
+        offset += chunk_len;
+    }
+
+    return 0; // Success
+}
+
