@@ -74,11 +74,10 @@ uint8_t VL53L8CX_WrMulti(
 		status = spi_transfer_chunked(SPI_CHANNEL, tx_buffer, size + 2);
 	}else
 	{
-		status = wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, size + 2);
-		//For debugging purposes, check if the transfer was successful
-		if(status < 0)
+		if(wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, size + 2) < 0)
 		{
 			printf("SPI errno: %s (errno: %d)\n", strerror(errno), errno);
+			status = 1;
 		}
 	}
 
@@ -97,7 +96,7 @@ uint8_t VL53L8CX_RdMulti(
 	tx_buffer[1] = RegisterAdress & 0xFF;
 	memset(&tx_buffer[2], 0, size);
 
-	if (wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, size + 2) == -1) {
+	if (wiringPiSPIDataRW(SPI_CHANNEL, tx_buffer, size + 2) < 0) {
 		printf("SPI errno: %s (errno: %d)\n", strerror(errno), errno);
 		status = 1; // Error
 	} else {
@@ -155,7 +154,7 @@ int spi_transfer_chunked(int channel, unsigned char *data, int total_len) {
 
         if (wiringPiSPIDataRW(channel, data + offset, chunk_len) < 0) {
             printf("SPI transfer failed at offset %d: %s (errno: %d)\n", offset, strerror(errno), errno);
-            return -1; // Error
+            return 1; // Error
         }
 
         offset += chunk_len;

@@ -318,13 +318,11 @@ uint8_t vl53l8cx_init(
 	status |= VL53L8CX_RdByte(&(p_dev->platform), 0x7fff, &tmp);
 	status |= VL53L8CX_WrByte(&(p_dev->platform), 0x7fff, 0x01);
 	
-	/* Download FW into VL53L8CX */ ////////////////////////////here starts 
+	/* Download FW into VL53L8CX */ 
 	status |= VL53L8CX_WrByte(&(p_dev->platform), 0x7fff, 0x09);
 
 	status |= VL53L8CX_WrMulti(&(p_dev->platform),0,
 	(uint8_t*)&VL53L8CX_FIRMWARE[0],0x8000);
-	printf("Test status %u\n", status); ///////////////////////above line -> status 1
-
 	status |= VL53L8CX_WrByte(&(p_dev->platform), 0x7fff, 0x0a);
 	status |= VL53L8CX_WrMulti(&(p_dev->platform),0,
 	(uint8_t*)&VL53L8CX_FIRMWARE[0x8000],0x8000);
@@ -332,7 +330,6 @@ uint8_t vl53l8cx_init(
 	status |= VL53L8CX_WrMulti(&(p_dev->platform),0,
 	(uint8_t*)&VL53L8CX_FIRMWARE[0x10000],0x5000);
 	status |= VL53L8CX_WrByte(&(p_dev->platform), 0x7fff, 0x01);
-	/////////////////////////////////////////////////////////// here ends
 
 	/* Check if FW correctly downloaded */
 	status |= VL53L8CX_WrByte(&(p_dev->platform), 0x7fff, 0x01);
@@ -358,9 +355,9 @@ uint8_t vl53l8cx_init(
 	if(status != (uint8_t)0){
 		goto exit;
 	}
-
+	
 	status |= VL53L8CX_WrByte(&(p_dev->platform), 0x7fff, 0x02);
-
+	
 	/* Firmware checksum */
 	status |= VL53L8CX_RdMulti(&(p_dev->platform), (uint16_t)(0x812FFC & 0xFFFF),
 			p_dev->temp_buffer, 4);
@@ -393,8 +390,7 @@ uint8_t vl53l8cx_init(
 		p_dev->default_configuration,
 		sizeof(VL53L8CX_DEFAULT_CONFIGURATION));
 	status |= _vl53l8cx_poll_for_answer(p_dev, 4, 1,
-		VL53L8CX_UI_CMD_STATUS, 0xff, 0x03);
-
+		VL53L8CX_UI_CMD_STATUS, 0xff, 0x03); 
 	status |= vl53l8cx_dci_write_data(p_dev, (uint8_t*)&pipe_ctrl,
 		VL53L8CX_DCI_PIPE_CONTROL, (uint16_t)sizeof(pipe_ctrl));
 #if VL53L8CX_NB_TARGET_PER_ZONE != 1
@@ -408,7 +404,7 @@ uint8_t vl53l8cx_init(
 			VL53L8CX_DCI_SINGLE_RANGE,
 			(uint16_t)sizeof(single_range));
 
-			
+
 exit:
 	return status;
 }
