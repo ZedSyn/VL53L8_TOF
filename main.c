@@ -34,6 +34,7 @@
 #define SPI_CHANNEL 0 // SPI channel (0 or 1)
 #define SPI_SPEED 500000//0 // SPI speed in Hz
 #define SPI_MODE 3
+#define PWREN_PIN 7
 
 int main(void)
 {
@@ -63,6 +64,10 @@ int main(void)
 	* from the default one (filled with 0x20 for this example).
 	*/
 	//status = vl53l8cx_set_i2c_address(&Dev, 0x20);
+
+	wiringPiSetup();
+	pinMode(PWREN_PIN, OUTPUT);
+	digitalWrite(PWREN_PIN, HIGH);	
 
 	if(wiringPiSPIxSetupMode(SPI_NUMBER, SPI_CHANNEL, SPI_SPEED, SPI_MODE) == -1)  //maybe add the spi mode also
 	{
@@ -95,7 +100,7 @@ int main(void)
 
 	printf("VL53L8CX ULD ready ! (Version : %s)\n",
 			VL53L8CX_API_REVISION);
-
+	
 
 	/*********************************/
 	/*         Ranging loop          */
@@ -115,7 +120,6 @@ int main(void)
 		if(isReady)
 		{
 			vl53l8cx_get_ranging_data(&Dev, &Results);
-
 			/* As the sensor is set in 4x4 mode by default, we have a total 
 			 * of 16 zones to print. For this example, only the data of first zone are 
 			 * print */
@@ -138,6 +142,7 @@ int main(void)
 
 	status = vl53l8cx_stop_ranging(&Dev);
 	printf("End of ULD demo\n");
+	digitalWrite(PWREN_PIN, LOW);
 	wiringPiSPIClose(SPI_CHANNEL);
 	return status;
 }

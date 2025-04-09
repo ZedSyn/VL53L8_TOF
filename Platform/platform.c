@@ -16,13 +16,11 @@
 #include <wiringPiSPI.h>
 #include <unistd.h> // for usleep
 #include <stdio.h>
-#include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 
 #define SPI_CHANNEL 0 // SPI channel (0 or 1)
 #define SPI_SPEED 500000 // SPI speed in Hz
-#define MAX_SPI_CHUNK 4096
 
 uint8_t VL53L8CX_RdByte(
 		VL53L8CX_Platform *p_platform,
@@ -141,20 +139,4 @@ uint8_t VL53L8CX_WaitMs(
 	return 0;
 }
 
-int spi_transfer_chunked(int channel, unsigned char *data, int total_len) {
-    int offset = 0;
-
-    while (offset < total_len) {
-        int chunk_len = (total_len - offset > MAX_SPI_CHUNK) ? MAX_SPI_CHUNK : (total_len - offset);
-
-        if (wiringPiSPIDataRW(channel, data + offset, chunk_len) < 0) {
-            printf("SPI transfer failed at offset %d: %s (errno: %d)\n", offset, strerror(errno), errno);
-            return 1; // Error
-        }
-
-        offset += chunk_len;
-    }
-
-    return 0; // Success
-}
 

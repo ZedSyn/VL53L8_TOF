@@ -112,8 +112,6 @@ uint8_t VL53L8CX_RdMulti(
 		uint32_t size);
 
 
-int spi_transfer_chunked(int channel, unsigned char *data, int total_len); 
-
 /**
  * @brief Mandatory function used to write multiples bytes.
  * @param (VL53L8CX_Platform*) p_platform : Pointer of VL53L8CX platform
