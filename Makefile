@@ -1,18 +1,20 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -IPlatform -IVL53L8CX_ULD_API/inc -Wall -Wextra -g
+CFLAGS = -IPlatform -IVL53L8CX_ULD_API/inc IHapticMotor -Wall -Wextra -g
 LDFLAGS = -lwiringPi
 
 # Directories
 PLATFORM_DIR = Platform
 VL53L8CX_DIR = VL53L8CX_ULD_API
+HAPTICMOTOR_DIR = HapticMotor
 BUILD_DIR = build
 
 # Source and object files
 MAIN_SRC = main.c
 PLATFORM_SRCS = $(wildcard $(PLATFORM_DIR)/*.c)
 VL53L8CX_SRCS = $(wildcard $(VL53L8CX_DIR)/src/*.c)
-SRCS = $(MAIN_SRC) $(PLATFORM_SRCS) $(VL53L8CX_SRCS)
+HAPTICMOTOR_SRCS = $(wildcard $(HAPTICMOTOR_DIR)/*.c)
+SRCS = $(MAIN_SRC) $(PLATFORM_SRCS) $(VL53L8CX_SRCS) $(HAPTICMOTOR_SRCS)
 OBJS = $(patsubst %.c, $(BUILD_DIR)/%.o, $(SRCS))
 TARGET = $(BUILD_DIR)/my_project
 
