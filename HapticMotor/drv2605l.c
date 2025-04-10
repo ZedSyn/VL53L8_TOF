@@ -24,23 +24,20 @@ int drv2605_init() {
 
     wiringPiI2CWriteReg8(drv_fd, REG_MODE, 0x00);             // Set mode to standby
     wiringPiI2CWriteReg8(drv_fd, REG_RTPIN, 0x00);            // Disable real-time playback
-    wiringPiI2CWriteReg8(drv_fd, REG_WAVESEQ1, 1);            // Set first waveform slot to effect 1
-    for (int i = 5; i <= 0x0B; i++)                           // Clear waveform slots 2-7
-        wiringPiI2CWriteReg8(drv_fd, i, 0);
-
     wiringPiI2CWriteReg8(drv_fd, REG_OVERDRIVE, 0);           // Set overdrive register to 0
     wiringPiI2CWriteReg8(drv_fd, REG_SUSTAINPOS, 0);          // Set positive sustain time to 0
     wiringPiI2CWriteReg8(drv_fd, REG_SUSTAINNEG, 0);          // Set negative sustain time to 0
     wiringPiI2CWriteReg8(drv_fd, REG_BREAK, 0);               // Set brake time to 0
     wiringPiI2CWriteReg8(drv_fd, REG_AUDIOMAX, 0x64);         // Set maximum audio-to-vibe gain
 
-    drv2605_use_erm();                                        // Configure the device to use ERM motor
+    //drv2605_use_erm();                                      // Configure the device to use ERM motor
+    drv2605_use_lra();                                        // Configure the device to use LRA motor
 
-    uint8_t ctrl3 = wiringPiI2CReadReg8(drv_fd, REG_CONTROL3); // Read control register 3
-    wiringPiI2CWriteReg8(drv_fd, REG_CONTROL3, ctrl3 | 0x20);  // Enable open-loop mode
+    //uint8_t ctrl3 = wiringPiI2CReadReg8(drv_fd, REG_CONTROL3); // Read control register 3
+    //wiringPiI2CWriteReg8(drv_fd, REG_CONTROL3, ctrl3 | 0x1 );  // Enable open-loop mode (for LRA)
 
-    drv2605_set_mode(MODE_INTTRIG);                           // Set mode to internal trigger
-    drv2605_set_library(LIB_TS2200A);                         // Set waveform library to TS2200A
+    //drv2605_set_mode(MODE_REALTIME);                          // Set mode 
+    //drv2605_set_library(LIB_LRA);                             // Set waveform library 
     return 0;                                                 // Return success
 }
 
@@ -59,7 +56,7 @@ void drv2605_set_mode(uint8_t mode) {
 }
 
 uint8_t drv2605_get_mode() {
-    return wiringPiI2CReadReg8(drv_fd, REG_MODE);                 // Read and return the mode register
+    return wiringPiI2CReadReg8(drv_fd, REG_MODE) & 0x07;          // Read and return the mode register
 }
 
 void drv2605_set_library(uint8_t lib) {
@@ -71,7 +68,7 @@ uint8_t drv2605_get_library() {
 }
 
 void drv2605_set_waveform(uint8_t slot, uint8_t effect_id) {
-    if (slot > 7) return;                                        // Validate slot number
+    if (slot > 7) return;                                         // Validate slot number
     wiringPiI2CWriteReg8(drv_fd, REG_WAVESEQ1 + slot, effect_id); // Set the effect ID in the specified slot
 }
 
