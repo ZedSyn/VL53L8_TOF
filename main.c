@@ -46,61 +46,30 @@
 #define PWREN_PIN 7
 
 #define PICO_IP "192.168.4.1"
-#define PICO_PORT 80
+#define PICO_PORT 12345
 
-int send_vibration_command(int dist[16]) {
-    char payload[256];
-    char http_request[512];
+int udp_socket;
+struct sockaddr_in pico_addr;
 
-    snprintf(payload, sizeof(payload),
-             "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-             dist[0], dist[1], dist[2], dist[3], dist[4], dist[5], dist[6], dist[7],
-             dist[8], dist[9], dist[10], dist[11], dist[12], dist[13], dist[14], dist[15]);
-
-    snprintf(http_request, sizeof(http_request),
-             "POST / HTTP/1.0\r\n"
-             "Host: %s\r\n"
-             "Content-Length: %zu\r\n"
-             "Content-Type: text/plain\r\n"
-             "\r\n"
-             "%s",
-             PICO_IP,
-             strlen(payload),
-             payload);
-
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == -1) {
-        printf("Could not create socket\n");
-        return 1;
+void init_udp_socket(const char *ip, int port) {
+    udp_socket = socket(AF_INET, SOCK_DGRAM, 0);
+    if (udp_socket < 0) {
+        perror("socket creation failed");
+        exit(1);
     }
 
-    struct sockaddr_in server;
-    server.sin_addr.s_addr = inet_addr(PICO_IP);
-    server.sin_family = AF_INET;
-    server.sin_port = htons(PICO_PORT);
+    memset(&pico_addr, 0, sizeof(pico_addr));
+    pico_addr.sin_family = AF_INET;
+    pico_addr.sin_port = htons(port);
+    pico_addr.sin_addr.s_addr = inet_addr(ip);
+}
 
-    if (connect(sock, (struct sockaddr *)&server, sizeof(server)) < 0) {
-        printf("Connect error\n");
-        close(sock);
-        return 1;
+void send_vibration_command(int *values) {
+    ssize_t sent = sendto(udp_socket, values, 16 * sizeof(int), 0,
+                          (struct sockaddr *)&pico_addr, sizeof(pico_addr));
+    if (sent < 0) {
+        perror("UDP send failed");
     }
-
-    if (send(sock, http_request, strlen(http_request), 0) < 0) {
-        printf("Send failed\n");
-        close(sock);
-        return 1;
-    }
-
-    // Optionally receive server response (can be removed if not needed)
-    char response[256];
-    int len = recv(sock, response, sizeof(response) - 1, 0);
-    if (len > 0) {
-        response[len] = '\0';
-        printf("Response: %s\n", response);
-    }
-
-    close(sock);
-    return 0;
 }
 
 int main(void)
@@ -167,12 +136,15 @@ int main(void)
 	printf("VL53L8CX ULD ready ! (Version : %s)\n",
 			VL53L8CX_API_REVISION);
 	
-	
 	status = vl53l8cx_set_ranging_frequency_hz(&Dev, 30);
 	if (status) {
 		printf("Failed to set ranging frequency\n");
 		return status;
 	}
+
+	init_udp_socket(PICO_IP, PICO_PORT);  // IP and port of the Pico
+	printf("Connected to pico!\n");
+
 	/*********************************/
 	/*         Ranging loop          */
 	/*********************************/
@@ -207,7 +179,7 @@ int main(void)
 			}
 			printf("\n");
 			// Send intensity values to the Pico W
-			//send_vibration_command(distances);
+			send_vibration_command(distances);
 
             loop++;
 		}
@@ -219,10 +191,10 @@ int main(void)
 
 	status = vl53l8cx_stop_ranging(&Dev);
 	// Ensure all motors are turned off at the end
-	//int end[16] = {0};
-	//send_vibration_command(end);
+	int end[16] = {4000};
+	send_vibration_command(end);
     printf("End of ULD demo\n");
-
+    close(udp_socket);
     digitalWrite(PWREN_PIN, LOW);
     wiringPiSPIClose(SPI_CHANNEL);
 
