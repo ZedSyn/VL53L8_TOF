@@ -79,7 +79,7 @@ int main(void)
 	/*   VL53L8CX ranging variables  */
 	/*********************************/
 
-	uint8_t 				status, loop, isAlive, isReady, j;
+	uint8_t 				status, isAlive, isReady, j;
 	VL53L8CX_Configuration 	Dev;			/* Sensor configuration */
 	VL53L8CX_ResultsData 	Results;		/* Results data from VL53L8CX */
 
@@ -151,8 +151,8 @@ int main(void)
 
 	status = vl53l8cx_start_ranging(&Dev);
 
-	loop = 0;
-	while(loop < 255)
+	int loop = 0;
+	while(loop < 1000)
 	{
 		/* Use polling function to know when a new measurement is ready.
 		 * Another way can be to wait for HW interrupt raised on PIN A1
@@ -191,7 +191,8 @@ int main(void)
 
 	status = vl53l8cx_stop_ranging(&Dev);
 	// Ensure all motors are turned off at the end
-	int end[16] = {4000};
+	int end[16];
+	for (int i = 0; i < 16; ++i) end[i] = 4000;
 	send_vibration_command(end);
     printf("End of ULD demo\n");
     close(udp_socket);
