@@ -41,7 +41,7 @@
 
 #define SPI_NUMBER 0
 #define SPI_CHANNEL 0 // SPI channel (0 or 1)
-#define SPI_SPEED 500000//0 // SPI speed in Hz
+#define SPI_SPEED 3000000 // SPI speed in Hz
 #define SPI_MODE 3
 #define PWREN_PIN 7
 
@@ -64,8 +64,8 @@ void init_udp_socket(const char *ip, int port) {
     pico_addr.sin_addr.s_addr = inet_addr(ip);
 }
 
-void send_vibration_command(int *values) {
-    ssize_t sent = sendto(udp_socket, values, 16 * sizeof(int), 0,
+void send_vibration_command(int16_t *values) {
+    ssize_t sent = sendto(udp_socket, values, 16 * sizeof(int16_t), 0,
                           (struct sockaddr *)&pico_addr, sizeof(pico_addr));
     if (sent < 0) {
         perror("UDP send failed");
@@ -152,7 +152,7 @@ int main(void)
 	status = vl53l8cx_start_ranging(&Dev);
 
 	int loop = 0;
-	while(loop < 1000)
+	while(loop < 2000)
 	{
 		/* Use polling function to know when a new measurement is ready.
 		 * Another way can be to wait for HW interrupt raised on PIN A1
@@ -166,22 +166,11 @@ int main(void)
 			/* As the sensor is set in 4x4 mode by default, we have a total 
 			 * of 16 zones to print. For this example, only the data of first zone are 
 			 * print */
-			printf("Print data no : %3u\n", Dev.streamcount);
 
-			int distances[16];
-			for(j = 0; j < 16; j++)
-			{
-				distances[j] = Results.distance_mm[VL53L8CX_NB_TARGET_PER_ZONE * j];
-                printf("Zone : %3d, Status : %3u, Distance : %4d mm\n",
-                       j,
-                       Results.target_status[VL53L8CX_NB_TARGET_PER_ZONE * j],
-                       distances[j]);
-			}
-			printf("\n");
 			// Send intensity values to the Pico W
-			send_vibration_command(distances);
+			send_vibration_command(Results.distance_mm);
 
-            loop++;
+            		loop++;
 		}
 
 		/* Wait a few ms to avoid too high polling (function in platform
@@ -191,13 +180,13 @@ int main(void)
 
 	status = vl53l8cx_stop_ranging(&Dev);
 	// Ensure all motors are turned off at the end
-	int end[16];
+	int16_t end[16];
 	for (int i = 0; i < 16; ++i) end[i] = 4000;
 	send_vibration_command(end);
-    printf("End of ULD demo\n");
-    close(udp_socket);
-    digitalWrite(PWREN_PIN, LOW);
-    wiringPiSPIClose(SPI_CHANNEL);
+    	printf("End of ULD demo\n");
+    	close(udp_socket);
+    	digitalWrite(PWREN_PIN, LOW);
+    	wiringPiSPIClose(SPI_CHANNEL);
 
 	return status;
 }
